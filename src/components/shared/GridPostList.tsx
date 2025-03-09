@@ -10,6 +10,11 @@ type GridPostListProps = {
 const GridPostList = ({ posts }: GridPostListProps) => {
     console.log('posts of grid post', posts)
     const flag=false;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    function setIsCommentOpen(_arg0: boolean): void {
+        throw new Error('Function not implemented.');
+    }
+
     return (
         <div>
             {/* <ul className=''>
@@ -29,7 +34,7 @@ const GridPostList = ({ posts }: GridPostListProps) => {
                 ) : posts.length > 0 ? (
                     <ul className="flex flex-col gap-9 w-full">
                         {posts.map((post: Models.Document) => (
-                            <PostCard key={post.$id} post={post} />
+                            <PostCard post={post} toggleComment={() => setIsCommentOpen(true)} />
                         ))}
                     </ul>
                 ) : (

@@ -5,6 +5,7 @@ import PostStats from './PostStats';
 
 type PostCardProps = {
     post: Models.Document;
+    toggleComment: () => void;
 };
 
 // Custom function to get relative time

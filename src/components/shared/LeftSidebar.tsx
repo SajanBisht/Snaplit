@@ -92,7 +92,6 @@ useEffect(() => {
                   </div>
                   <div className='hover:bg-gray-500 w-full flex left-0 rounded-xl cursor-pointer'>
                     <Button
-                      variant="ghost"
                       className="text-[18px] text-gray-400 gap-2 cursor-pointer"
                       onClick={() => signOut()}
                     >

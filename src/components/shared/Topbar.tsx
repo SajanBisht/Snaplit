@@ -25,7 +25,6 @@ const Topbar = () => {
         <div className="flex items-center gap-4">
           {/* Logout Button */}
           <Button
-            variant="ghost"
             className="shad-button_ghost cursor-pointer"
             onClick={() => signOut()}
           >

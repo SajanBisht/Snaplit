@@ -1,6 +1,6 @@
 import { ID, Query } from 'appwrite';
 import { account, avatars, databases, appwriteConfig, storage } from '../appwrite/config';
-import { INewPost, INewUser, IUpdatePost } from '../../types/index';
+import { INewPost, INewUser, InfinitePostsResponse, IUpdatePost } from '../../types/index';
 
 export async function createUserAccount(user: INewUser) {
     try {
@@ -375,7 +375,7 @@ export async function updatePost(post: IUpdatePost) {
         return updatedPost;
 
     } catch (error) {
-        // console.error("Error in updatePost:", error);
+        console.error("Error in updatePost:", error);
         return null;
     }
 }
@@ -405,42 +405,39 @@ export async function deletePost(postId: string, imageId: string) {
 
 
 
-export async function getInfinitePosts({ pageParam }: { pageParam: number }) {
+export const getInfinitePosts = async ({ pageParam }: { pageParam: string }): Promise<InfinitePostsResponse> => {
     try {
-        const queries: any[] = [Query.orderDesc('$updatedAt'), Query.limit(10)]
-        if (pageParam !== 0) {
-            queries.push(Query.cursorAfter(pageParam.toString()))
-        }
-        const posts = await databases.listDocuments(
+        const response = await databases.listDocuments(
             appwriteConfig.databaseId,
             appwriteConfig.postCollectionId,
-            queries
-        )
-        if (!posts) throw new Error("Failed to fetch posts");
-        return posts;
-    }
-    catch (error) {
-        // console.error("Error in getInfinitePost: " + error);
-        return { error: (error as Error).message };
-    }
-}
-
-export async function searchPosts(searchTerm: string) {
-    try {
-        const posts = await databases.listDocuments(
-            appwriteConfig.databaseId,
-            appwriteConfig.postCollectionId,
-            [
-                Query.search("caption", searchTerm),
-                Query.search("tags", searchTerm)
-            ]
-        );
-        return posts;
+            [Query.orderDesc('$createdAt'), Query.limit(10), Query.cursorAfter(pageParam)]
+        );   
+        return { pages: response.documents.length, documents: response.documents };
     } catch (error) {
-        // console.error("Error in searchPosts:", error);
-        return { error: (error as Error).message };
+      console.error('Error fetching posts:', error);
+      return { pages: null, documents: [] };
     }
-}
+  };
+  
+
+  export const searchPosts = async (searchTerm: string, pageParam: string): Promise<InfinitePostsResponse> => {
+    try {
+      const response = await databases.listDocuments(
+        appwriteConfig.databaseId,
+        appwriteConfig.postCollectionId,
+        [
+          Query.search('caption', searchTerm),
+          Query.limit(10),
+          ...(pageParam ? [Query.cursorAfter(pageParam)] : []),
+        ]
+      );
+      return { pages: response.documents.length, documents: response.documents };
+    } catch (error) {
+      console.error('Error searching posts:', error);
+      return { pages: null, documents: [] };
+    }
+  };
+  
 
 
 
@@ -501,10 +498,12 @@ export const fetchComments = async (postId: string) => {
         );
 
         return response.documents;
-    } catch (error) {
-        return []; // Return an empty array in case of an error
     }
-};
+    catch (error) {
+        console.error(`Error fetching user with ID :`, error);
+        return null;
+    }
+} 
 
 
 
@@ -521,7 +520,7 @@ export const getUsersByIds = async (userIds: string[]) => {
                 appwriteConfig.databaseId,
                 appwriteConfig.userCollectionId,
                 id
-            ).catch(error => {
+            ).catch(() => {
                 // console.error(`Error fetching user with ID ${id}:`, error);
                 return null; // Prevent the function from failing
             })

@@ -1,7 +1,7 @@
 import "./App.css";
 
 import { Routes, Route } from "react-router-dom";
-import { AllUsers, CreatePost, EditPost, Explore, Home, LikedPosts,Notification, Messages, PostDetails, Profile, Reels, Saved, UpdateProfile, Liked } from "./_root/pages";
+import { AllUsers, CreatePost, EditPost, Explore, Home, LikedPosts,Notification, Messages, PostDetails, Profile, Reels, Saved, UpdateProfile} from "./_root/pages";
 import SigninForm from "./_auth/forms/SigninForm";
 import SignupForm from "./_auth/forms/SignupForm";
 import AuthLayout from "./_auth/AuthLayout";

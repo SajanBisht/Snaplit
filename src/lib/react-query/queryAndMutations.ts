@@ -1,4 +1,4 @@
-import { INewPost, INewUser, IUpdatePost } from '@/types'
+import { INewPost, INewUser, InfinitePostsResponse, IUpdatePost } from '@/types'
 import {
     useQuery,
     useMutation,
@@ -150,34 +150,55 @@ export const useDeletePost = () => {
         }
     })
 }
-export const useGetInfinitePosts = () => {
-    return useInfiniteQuery({
-        queryKey: [QUERY_KEYS.GET_INFINITE_POSTS],
-        queryFn: getInfinitePosts,
-        getNextPageParam: (lastPage) => {
-            if (!lastPage || lastPage.documents.length === 0) return null;
 
-            const lastId = lastPage.documents[lastPage.documents.length - 1].$id;
-            return lastId;
-        },
-        initialPageParam: 0,
+
+export const useGetInfinitePosts = () => {
+    return useInfiniteQuery<InfinitePostsResponse, Error, InfinitePostsResponse, [string], string>({
+      queryKey: [QUERY_KEYS.GET_INFINITE_POSTS],
+      queryFn: ({ pageParam }) => getInfinitePosts({ pageParam }), // Now typed as string
+      getNextPageParam: (lastPage) => {
+        if (
+          typeof lastPage === 'object' &&
+          lastPage !== null &&
+          'documents' in lastPage &&
+          Array.isArray(lastPage.documents) &&
+          lastPage.documents.length > 0
+        ) {
+          const lastId = lastPage.documents[lastPage.documents.length - 1].$id;
+          return lastId;
+        }
+  
+        return null;
+      },
+      initialPageParam: '0',
     });
-};
+  };
+  
+
 
 export const useSearchPosts = (searchTerm: string) => {
     return useInfiniteQuery({
-        queryKey: [QUERY_KEYS.GET_INFINITE_POSTS, searchTerm], // Differentiate queries
-        queryFn: () => searchPosts(searchTerm), // Pass function, not execute it
-        enabled: !!searchTerm, // Fix syntax
+        queryKey: [QUERY_KEYS.GET_INFINITE_POSTS, searchTerm],
+        queryFn: ({ pageParam = '' }) => searchPosts(searchTerm, pageParam),
+        enabled: !!searchTerm,
         getNextPageParam: (lastPage) => {
-            if (!lastPage || lastPage.documents.length === 0) return null;
+            if (
+                typeof lastPage === 'object' &&
+                lastPage !== null &&
+                'documents' in lastPage &&
+                Array.isArray(lastPage.documents) &&
+                lastPage.documents.length > 0
+            ) {
+                const lastId = lastPage.documents[lastPage.documents.length - 1].$id;
+                return lastId;
+            }
 
-            const lastId = lastPage.documents[lastPage.documents.length - 1].$id;
-            return lastId;
+            return null;
         },
-        initialPageParam: 0,
+        initialPageParam: '',
     });
 };
+
 
 
 export const useHandleCommentSubmit = () => {
@@ -240,7 +261,7 @@ export const useDeleteComment = () => {
             // Invalidate comments query to refetch updated comments
             queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_COMMENTS] });
             // Invalidate subcomments query to update nested replies
-            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_SUBCOMMENTS], parent });
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_SUBCOMMENTS] });
         },
         onError: (error) => {
             console.error("Error deleting comment:", error);
@@ -285,7 +306,7 @@ export const useLikeComment = () => {
             addLikeToComment({ commentId, likedCommentArray }), // Now passing an object
 
         onSuccess: (data) => {
-            if (data?.$id) {
+            if ('\$id' in data) {
                 queryClient.invalidateQueries({
                     queryKey: [QUERY_KEYS.ADD_LIKE_TO_COMMENT]
                 });
@@ -303,23 +324,23 @@ export const useUpdateComment = () => {
             newcontent: string;
             parentId: string;
             postId: string;
-        }) => updateComment({ commentId, newcontent, parentId, postId }),
+        }) => updateComment({ commentId, newcontent, parentId, postId } as { commentId: string; newcontent: string; parentId: string; postId: string }),
 
         onSuccess: (_, { commentId, newcontent, parentId, postId }) => {
             console.log("Updating cache for post:", postId, "Comment ID:", commentId);
 
-            const updateComments = (comments: any[]) => 
+            const updateComments = (comments: any[]) =>
                 comments.map((comment: any) =>
                     comment.$id === commentId ? { ...comment, content: newcontent } : comment
                 );
 
             // 🔥 Ensure fresh cache update
-            queryClient.setQueryData([QUERY_KEYS.GET_COMMENTS, postId], (oldData: any) => 
+            queryClient.setQueryData([QUERY_KEYS.GET_COMMENTS, postId], (oldData: any) =>
                 oldData && Array.isArray(oldData) ? [...updateComments(oldData)] : oldData
             );
 
             if (parentId) {
-                queryClient.setQueryData([QUERY_KEYS.GET_SUBCOMMENTS, parentId], (oldData: any) => 
+                queryClient.setQueryData([QUERY_KEYS.GET_SUBCOMMENTS, parentId], (oldData: any) =>
                     oldData && Array.isArray(oldData) ? [...updateComments(oldData)] : oldData
                 );
             }
@@ -327,8 +348,8 @@ export const useUpdateComment = () => {
             console.log('Cache Updated ✅');
 
             // 🚀 Force refetch to update UI
-            queryClient.invalidateQueries([QUERY_KEYS.GET_COMMENTS, postId]);
-            if (parentId) queryClient.invalidateQueries([QUERY_KEYS.GET_SUBCOMMENTS, parentId]);
+            queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_COMMENTS, postId] });
+            if (parentId) queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_SUBCOMMENTS, parentId] });
         },
 
         onError: (error) => {
@@ -344,7 +365,7 @@ export const useDeletePostWithComment = () => {
 
     return useMutation({
         mutationFn: (postId: string) => deletePostWithComments(postId), // Corrected property name
-        onSuccess: (data) => {
+        onSuccess: () => {
             // Invalidate or refetch posts after deletion
             queryClient.invalidateQueries({
                 queryKey: [QUERY_KEYS.GET_RECENT_POSTS]
@@ -357,10 +378,10 @@ export const useDeletePostWithComment = () => {
 //User Posts
 export const useGetUserPosts = (userId: string) => {
     return useQuery({
-      queryKey: [QUERY_KEYS.GET_USER_OWN_POSTS, userId], // Include userId in query key
-      queryFn: () => getUserOwnPosts(userId), // Pass userId correctly as a function
-      enabled: !!userId, // Prevents execution if userId is not available
+        queryKey: [QUERY_KEYS.GET_USER_OWN_POSTS, userId], // Include userId in query key
+        queryFn: () => getUserOwnPosts(userId), // Pass userId correctly as a function
+        enabled: !!userId, // Prevents execution if userId is not available
     });
-  };
-  
+};
+
 

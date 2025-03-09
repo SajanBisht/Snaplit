@@ -8,6 +8,11 @@ const Home = () => {
   const { data: posts, isPending: isPostLoading } = useGetRecentPosts();
   console.log('home posts',posts)
   console.log('isPostLoading',isPostLoading)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  function setIsCommentOpen(_arg0: boolean): void {
+    throw new Error("Function not implemented.");
+  }
+
   return (
     <div className="flex  min-h-screen flex-col w-full ml-[35%]">
       <div className="home-container ">
@@ -20,8 +25,9 @@ const Home = () => {
             </div>
           ) : (
             <ul className="flex flex-col gap-9 ">
-              {posts  && posts?.documents.map((post: Models.Document) => (
-                 <PostCard key={post.$id} post={post} />
+              {posts && 'documents' in posts && posts.documents.map((post: Models.Document) => (
+                 <PostCard post={post} toggleComment={() => setIsCommentOpen(true)} />
+
               ))}
             </ul>
           )}

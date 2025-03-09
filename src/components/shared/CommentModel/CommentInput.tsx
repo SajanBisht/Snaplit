@@ -11,7 +11,7 @@ interface CommentInputProps {
   onCommentSubmit: (content: string, parentId?: string) => void;
 }
 
-const CommentInput: React.FC<CommentInputProps> = ({ postId, parentCommentId, userId, onCommentSubmit,action }) => {
+const CommentInput: React.FC<CommentInputProps> = ({ parentCommentId, onCommentSubmit,action }) => {
   const { user } = useUserContext();
   const [content, setContent] = useState("");
 
@@ -35,7 +35,7 @@ const CommentInput: React.FC<CommentInputProps> = ({ postId, parentCommentId, us
         <Emoji onSelect={(emoji) => setContent((prev) => prev + emoji)} />
         <textarea
           placeholder="Write a comment..."
-          value={content}
+          value={content || ''}
           onChange={(e) => setContent(e.target.value)}
           className="flex-1 p-2 bg-[#222] text-white rounded-lg resize-none focus:outline-none focus:ring-1 focus:ring-gray-500"
           rows={2} // Initial height

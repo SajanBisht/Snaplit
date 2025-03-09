@@ -9,17 +9,20 @@ import { Link } from "react-router-dom";
 import Dropdown from "./Dropdown";
 import { CommentContext } from "./CommentContext";
 
+import { CommentType } from "@/types";
+
 interface SubcommentsProps {
-  parentId: string; // Parent comment ID
-  postId: string; // Post ID
-  comment: { userId: string }; // Parent comment object
+  parentId: string;
+  postId: string;
+  comment: CommentType;
 }
+
 
 const Subcomments = ({ parentId, postId, comment }: SubcommentsProps) => {
   const { data: subcomments, isPending, isError } = useGetSubcomments(parentId);
-  const { mutate: addComment, isPending: isAdding } = useAddSubComment();
+  const { mutate: addComment } = useAddSubComment();
   const { data: currentUser } = useGetCurrentUser();
- 
+
   const handleReply = (content: string, parentId?: string) => {
     if (!content.trim()) return;
 
@@ -28,12 +31,12 @@ const Subcomments = ({ parentId, postId, comment }: SubcommentsProps) => {
       {
         onSuccess: () => {
           console.log("Reply added!");
-          setShowReplyInput(false); // Hide input after reply
+          setShowReplyInput((prev) => ({ ...prev, [parentId || ""]: false })); // Hide input after reply
         }
       }
     );
   };
-  const { mutate: deleteComments, isPending: deleteCommentsLoading } = useDeleteComment();
+  const { mutate: deleteComments } = useDeleteComment();
   const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
   // Extract unique userIds from comments
   const userIdArray = Array.from(
@@ -107,43 +110,39 @@ const Subcomments = ({ parentId, postId, comment }: SubcommentsProps) => {
   };
 
   //editing comment section
-  const [isEditing, setIsEditing] = useState(false);
-  const handleEditReply = () => {
-    setIsEditing(true);
-    console.log("Editing comment");
-  }
+  const [isEditing] = useState(false);
 
   //post reply section
-   // State to track if the reply input should be shown
+  // State to track if the reply input should be shown
   const [showReplyInput, setShowReplyInput] = useState<Record<string, boolean>>({});
 
   const toggleShowReplyInput = (subcommentId: string) => {
     setShowReplyInput((prev) => {
       const updatedState: Record<string, boolean> = {};
-  
+
       // Set all subcomments to false except the clicked one (toggle it)
       Object.keys(prev).forEach((id) => {
         updatedState[id] = false; // Set all other IDs to false
       });
-  
+
       // Toggle only the clicked one
       updatedState[subcommentId] = !prev[subcommentId];
-  
+
       return updatedState;
     });
-  };  
+  };
 
   //context use
   const context = useContext(CommentContext);
-    
+
   if (!context) {
-      return <p>Error:Comment Context not found</p>;
+    return <p>Error:Comment Context not found</p>;
   }
 
   const { value, setValue } = context;
   console.log(value);
   console.log(setValue);
-  
+
   return (
     <div className="mt-3 space-y-2 z-[800]">
       {/* Show Loader while fetching */}
@@ -186,7 +185,6 @@ const Subcomments = ({ parentId, postId, comment }: SubcommentsProps) => {
                             parentId={parentId}
                             postId={postId}
                             isEditingValue={isEditing}
-                            handleEditReply={handleEditReply}
                           />
                         </div>
                       )
@@ -210,7 +208,7 @@ const Subcomments = ({ parentId, postId, comment }: SubcommentsProps) => {
                     <img
                       src=
                       {
-                        likes[subcomment.$id]?.has(currentUser?.$id) ? "/assets/icons/liked.svg" : "/assets/icons/like.svg"
+                        likes[subcomment.$id]?.has(currentUser?.$id || "") ? "/assets/icons/liked.svg" : "/assets/icons/like.svg"
                       }
 
                       alt="like"
@@ -228,11 +226,12 @@ const Subcomments = ({ parentId, postId, comment }: SubcommentsProps) => {
           </div>
 
           {/* Show Reply Button */}
-            <div onClick={() => {toggleShowReplyInput(subcomment.$id);
-             setValue((prev) => ({ ...prev, homepost: false,replycomment:false,replysubcomment:true,editcomment:false }));
-            }} className="cursor-pointer">
-              <span className="text-gray-400">{!showReplyInput[subcomment.$id] ? "Reply" : "Close"}</span>
-            </div>
+          <div onClick={() => {
+            toggleShowReplyInput(subcomment.$id);
+            setValue((prev) => ({ ...prev, homepost: false, replycomment: false, replysubcomment: true, editcomment: false }));
+          }} className="cursor-pointer">
+            <span className="text-gray-400">{!showReplyInput[subcomment.$id] ? "Reply" : "Close"}</span>
+          </div>
 
           {/* Recursive Subcomments */}
           <Subcomments parentId={subcomment.$id} postId={postId} comment={comment} />

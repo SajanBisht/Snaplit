@@ -1,5 +1,5 @@
 
-import { useDeleteComment, useFetchComments, useGetCurrentUser, useGetPostById, useGetUsers, useHandleCommentSubmit, useLikeComment, useAddSubComment, useUpdateComment } from "@/lib/react-query/queryAndMutations";
+import { useDeleteComment, useFetchComments, useGetCurrentUser, useGetPostById, useGetUsers, useHandleCommentSubmit, useLikeComment, useAddSubComment } from "@/lib/react-query/queryAndMutations";
 import { Models } from "appwrite";
 import Loader from "./../Loader";
 import PostCard from "./../PostCard";
@@ -44,7 +44,7 @@ const CommentList: React.FC<CommentListProps> = ({ postId }) => {
 
     // console.log('User Image Map:', userImageMap);
     const [deletingCommentId, setDeletingCommentId] = useState<string | null>(null);
-    const { mutate: deleteComments, isPending: deleteCommentsLoading } = useDeleteComment();
+    const { mutate: deleteComments } = useDeleteComment();
 
     const handleDeleteReply = (commentId: string) => {
         setDeletingCommentId(commentId);
@@ -117,7 +117,7 @@ const CommentList: React.FC<CommentListProps> = ({ postId }) => {
     };
 
     //add reply comment
-    const { mutate: addComment, isPending: isAdding } = useAddSubComment();
+    const { mutate: addComment } = useAddSubComment();
     const handleReply = (content: string, parentId?: string) => {
         if (!content.trim()) return;
 
@@ -126,7 +126,7 @@ const CommentList: React.FC<CommentListProps> = ({ postId }) => {
             {
                 onSuccess: () => {
                     console.log("Reply added!");
-                    setShowReplyInput(false); // Hide input after reply
+                    setShowReplyInput((prev) => ({ ...prev, [parentId || '']: false })); // Hide input after reply
                 }
             }
         );
@@ -143,11 +143,8 @@ const CommentList: React.FC<CommentListProps> = ({ postId }) => {
     };
 
     //editing comment section
-    const [isEditing, setIsEditing] = useState(false);
-    const handleEditReply = () => {
-        setIsEditing(true);
-        console.log("Editing comment");
-    }
+    const [isEditing] = useState(false);
+   
 
     //context use
     const context = useContext(CommentContext);
@@ -165,7 +162,7 @@ const CommentList: React.FC<CommentListProps> = ({ postId }) => {
             {/* Comments List */}
             <div className="w-full flex">
                 <div className="w-[50%] sticky h-[300px] top-0 hidden md:block">
-                    {post && !('error' in post) && <PostCard key={postId} post={post} toggleComment={true} />}
+                    {post && !('error' in post) && <PostCard key={postId} post={post} toggleComment={() => {}} />}
                 </div>
                 <div className="md:w-[50%] w-full ml-4">
                     {isLoading && <Loader />}
@@ -210,7 +207,6 @@ const CommentList: React.FC<CommentListProps> = ({ postId }) => {
                                                                         parentId={''}
                                                                         postId={postId}
                                                                         isEditingValue={isEditing}
-                                                                        handleEditReply={handleEditReply}
                                                                     />
                                                                 </div>
                                                             )
@@ -230,7 +226,7 @@ const CommentList: React.FC<CommentListProps> = ({ postId }) => {
                                                     <img
                                                         src=
                                                         {
-                                                            likes[comment.$id]?.has(currentUser?.$id) ? "/assets/icons/liked.svg" : "/assets/icons/like.svg"
+                                                            likes[comment.$id]?.has(currentUser?.$id || "") ? "/assets/icons/liked.svg" : "/assets/icons/like.svg"
                                                         }
 
                                                         alt="like"
@@ -273,7 +269,15 @@ const CommentList: React.FC<CommentListProps> = ({ postId }) => {
                                 )}
 
                                 {showMoreMap[comment.$id] && <div className="my-4">
-                                    <Subcomments parentId={comment.$id} postId={postId} comment={comment} />
+                                    <Subcomments parentId={comment.$id} postId={postId} comment={{
+                                        $id: comment.$id,
+                                        postId: postId,
+                                        userId: comment.userId,
+                                        content: comment.content,
+                                        likes: comment.likes ?? [],
+                                        $createdAt: comment.$createdAt,
+                                        $updatedAt: comment.$updatedAt
+                                    }} />
                                     {comments && <div className="text-gray-300 my-2 ml-4">No more Reply</div>}</div>}
                             </li>
                         ))}
@@ -290,14 +294,14 @@ const CommentList: React.FC<CommentListProps> = ({ postId }) => {
                     onCommentSubmit={(content, parentId) =>
                         handleCommentSubmit({
                             postId: postId,
-                            userId: currentUser?.$id,
+                            userId: currentUser?.$id || "",
                             content,
                             parentId,
                         },
                             {
                                 onSuccess: () => {
                                     console.log("Reply added!");
-                                    setShowReplyInput(false); // Hide input after reply
+                                    setShowReplyInput((prev) => ({ ...prev, [parentId || '']: false })); // Hide input after reply
                                 }
                             })
                     }

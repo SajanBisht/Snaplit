@@ -14,7 +14,7 @@ export const INITIAL_USER: IUser = {
 };
 
 interface IContextType {
-    id: any;
+    id: unknown;
     user: IUser;
     isAuthenticated: boolean;
     isLoading: boolean;
@@ -27,9 +27,10 @@ const INITIAL_STATE: IContextType = {
     user: INITIAL_USER,
     isAuthenticated: false, // Default false to avoid showing protected content temporarily
     isLoading: false,
-    setUser: () => {},
-    setIsAuthenticated: () => {},
+    setUser: () => { },
+    setIsAuthenticated: () => { },
     checkAuthUser: async () => false,
+    id: undefined
 };
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -92,7 +93,7 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
     
 
     return (
-        <AuthContext.Provider value={{ user, isAuthenticated, isLoading, setUser, setIsAuthenticated, checkAuthUser }}>
+        <AuthContext.Provider value={{ id: undefined, user, isAuthenticated, isLoading, setUser, setIsAuthenticated, checkAuthUser }}>
             {children}
         </AuthContext.Provider>
     );

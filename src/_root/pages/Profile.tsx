@@ -6,7 +6,7 @@ import { useGetUsers } from '@/lib/react-query/queryAndMutations';
 
 const Profile = () => {
   const { id } = useParams();
-  const { data: users, isLoading, isError } = useGetUsers([id]);
+  const { data: users, isLoading, isError } = useGetUsers(id ? [id] : []);
   const [toggleValue, setToggleValue] = useState('posts');
   const [postCount, setPostCount] = useState(0)
   const [toggleDpModel, setToggleDpModel] = useState(false)

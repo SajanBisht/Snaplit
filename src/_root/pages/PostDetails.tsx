@@ -3,7 +3,6 @@ import PostStats from "@/components/shared/PostStats";
 import { Button } from "@/components/ui/button";
 import { useUserContext } from "@/context/AuthContext";
 import { useDeletePostWithComment, useGetPostById } from "@/lib/react-query/queryAndMutations";
-import { Ghost } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 const PostDetails = () => {
@@ -13,7 +12,9 @@ const PostDetails = () => {
   const { data: post, isPending: isLoadingPost } = useGetPostById(id || "");
   const { mutate: deletePost } = useDeletePostWithComment();
   const handleDeletePost = () => {
-    deletePost(post?.$id);
+    if (post && !("error" in post)) {
+      deletePost(post.$id);
+    }
     navigate('/');
   };
   if (isLoadingPost) return <div className="mt-10 ml-[50%]"><Loader /></div>;
@@ -75,7 +76,7 @@ const PostDetails = () => {
               <Link to={`/update-post/${post.$id}`}>
                 <img src="/assets/icons/edit.svg" alt="edit" className="w-6" />
               </Link>
-              <Button onClick={handleDeletePost} variant={Ghost} className="p-1">
+              <Button onClick={handleDeletePost} className="p-1">
                 <img src="/assets/icons/delete.svg" alt="delete" className="w-6" />
               </Button>
             </div>
@@ -96,7 +97,7 @@ const PostDetails = () => {
         </div>
 
         {/* Post Stats */}
-        <PostStats post={post} userId={user.user.id} />
+        <PostStats post={post} userId={user.user.id}/>
       </div>
     </div>
   );

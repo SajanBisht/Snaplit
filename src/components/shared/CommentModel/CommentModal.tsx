@@ -63,7 +63,7 @@ const CommentModal: React.FC<CommentModalProps> = ({ postId, isOpen, onClose }) 
                     drag="y"
                     dragElastic={0.2}
                     dragConstraints={getDragConstraints()}
-                    onDrag={(event, info) => {
+                    onDrag={(_event, info) => {
                         setHeight((prevHeight) => {
                             const deltaHeight = (-info.delta.y / window.innerHeight) * 100;
                             return Math.max(minHeight, Math.min(maxHeight, prevHeight + deltaHeight));

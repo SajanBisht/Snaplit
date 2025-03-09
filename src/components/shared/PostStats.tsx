@@ -7,10 +7,10 @@ import CommentModal from "./CommentModel/CommentModal";
 type PostStatsProps = {
   post: Models.Document;
   userId: string;
-  toggleComment?: boolean; // ✅ Make toggleComment optional
+  toggleComment?: () => void; // ✅ Make it optional
 };
 
-const PostStats = ({ post, userId, toggleComment = false }: PostStatsProps) => {
+const PostStats = ({ post, userId, toggleComment }: PostStatsProps) => {
   const [isCommentOpen, setIsCommentOpen] = useState(false);
   const likedList: string[] = post.likes.map((user: Models.Document) => user.$id);
   const [likes, setLikes] = useState<string[]>(likedList);
@@ -20,15 +20,16 @@ const PostStats = ({ post, userId, toggleComment = false }: PostStatsProps) => {
   const { mutate: savePost, isPending: isSavingPost } = useSavePost();
   const { mutate: deleteSavedPost, isPending: isDeletingSavedPost } = useDeleteSavedPost();
   const { data: currentUser } = useGetCurrentUser();
+
   const isPostSaved = currentUser?.save?.some((record: Models.Document) => record.post?.$id === post?.$id) || false;
 
   useEffect(() => {
     setIsSaved(isPostSaved);
-  }, [currentUser, isPostSaved]); // ✅ Update when currentUser changes
+  }, [currentUser, isPostSaved]);
 
   const handleSavedPost = (e: React.MouseEvent) => {
     e.preventDefault();
-    e.stopPropagation(); // ✅ Prevent event bubbling
+    e.stopPropagation();
 
     const savedPostRecord = currentUser?.save?.find((record: Models.Document) => record.post.$id === post.$id);
 
@@ -43,19 +44,19 @@ const PostStats = ({ post, userId, toggleComment = false }: PostStatsProps) => {
 
   const handleLikedPost = (e: React.MouseEvent) => {
     e.preventDefault();
-    e.stopPropagation(); // ✅ Prevent event bubbling
+    e.stopPropagation();
 
     const updatedLikes = likes.includes(userId)
-      ? likes.filter((id) => id !== userId) // Unlike
-      : [...likes, userId]; // Like
+      ? likes.filter((id) => id !== userId)
+      : [...likes, userId];
 
-    setLikes(updatedLikes); // Optimistic UI update
+    setLikes(updatedLikes);
     likePost({ postId: post.$id, likedArray: updatedLikes });
   };
 
   return (
     <div className="flex justify-between items-center w-full">
-      {/* Like Button */}
+      {/* Like */}
       <div className="flex items-center gap-3">
         <img
           src={likes.includes(userId) ? "/assets/icons/liked.svg" : "/assets/icons/like.svg"}
@@ -68,31 +69,29 @@ const PostStats = ({ post, userId, toggleComment = false }: PostStatsProps) => {
         <p>{likes.length}</p>
       </div>
 
-      {/* Comment Button - Opens Modal */}
-      {!toggleComment && (
-        <div>
-          <img
-            src="/assets/icons/chat.svg"
-            alt="comment"
-            width={20}
-            height={20}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation(); // ✅ Prevent bubbling
-              setIsCommentOpen(true);
-            }}
-            className="cursor-pointer"
-          />
-        </div>
-      )}
+      {/* Comment */}
+      <div>
+        <img
+          src="/assets/icons/chat.svg"
+          alt="comment"
+          width={20}
+          height={20}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleComment ? toggleComment() : setIsCommentOpen(true);
+          }}
+          className="cursor-pointer"
+        />
+      </div>
 
-      {/* Share Button */}
+      {/* Share */}
       <div className="flex items-center gap-3">
         <img src="/assets/icons/share.svg" alt="share" width={20} height={20} className="cursor-pointer" />
         <p>0</p>
       </div>
 
-      {/* Save Button */}
+      {/* Save */}
       <div className="flex items-center gap-3">
         {(isSavingPost || isDeletingSavedPost) ? (
           <Loader />
@@ -107,11 +106,12 @@ const PostStats = ({ post, userId, toggleComment = false }: PostStatsProps) => {
           />
         )}
       </div>
-      
-      {/* Comment Modal */}
+
+      {/* Modal */}
       {isCommentOpen && <CommentModal postId={post.$id} isOpen={isCommentOpen} onClose={() => setIsCommentOpen(false)} />}
     </div>
   );
 };
+
 
 export default PostStats;
