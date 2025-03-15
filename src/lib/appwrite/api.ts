@@ -177,7 +177,7 @@ export async function getCurrentAccount() {
             throw new Error(" User not found in database.");
         }
 
-        console.log("📄 User retrieved from database:", currentUser.documents[0]);
+        console.log(" User retrieved from database:", currentUser.documents[0]);
         return currentUser.documents[0];
 
     } catch (error: unknown) {
@@ -416,7 +416,7 @@ export async function updatePost(post: IUpdatePost) {
             throw new Error("Failed to update post in the database");
         }
 
-        // console.log("✅ Post updated successfully:", updatedPost);
+        // console.log(" Post updated successfully:", updatedPost);
         return updatedPost;
 
     } catch (error) {
@@ -440,7 +440,7 @@ export async function deletePost(postId: string, imageId: string) {
             await deleteFile(imageId);
         }
 
-        // console.log("✅ Post and associated image deleted successfully");
+        // console.log(" Post and associated image deleted successfully");
         return post;
     } catch (error) {
         // console.error("Error in deletePost: " + error);
