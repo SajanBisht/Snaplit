@@ -180,10 +180,10 @@ export async function getCurrentAccount() {
         console.log("📄 User retrieved from database:", currentUser.documents[0]);
         return currentUser.documents[0];
 
-    } catch (error: any) {
-        console.error(" Error in getCurrentAccount:", error.message);
+    } catch (error: unknown) {
+        console.error(" Error in getCurrentAccount:", (error as Error).message);
 
-        if (error.message?.includes("missing scope (account)")) {
+        if ((error as Error).message?.includes("missing scope (account)")) {
             console.warn(" User is not logged in. Returning null.");
         }
 
@@ -383,13 +383,13 @@ export async function updatePost(post: IUpdatePost) {
 
         if (hasFileToUpdate) {
             // Upload image to storage
-            const uploadedFile: any = await uploadFile(post.file[0]);
+            const uploadedFile = await uploadFile(post.file[0]) as { $id: string };
             if (!uploadedFile) throw new Error("Failed to upload file");
 
             // Get file URL
-            const fileUrl = getFilePreview(uploadedFile?.$id);
+            const fileUrl = getFilePreview((uploadedFile as { $id: string }).$id);
             if (!fileUrl) {
-                await deleteFile(uploadedFile.$id); // Delete uploaded file if URL generation fails
+                await deleteFile((uploadedFile as { $id: string }).$id); // Delete uploaded file if URL generation fails
                 throw new Error("Failed to generate file preview URL");
             }
 
@@ -606,7 +606,7 @@ export const addSubComment = async (comment: {
     postId: string;
 }) => {
     try {
-        const commentData: Record<string, any> = {
+        const commentData: Record<string, unknown> = {
             postId: comment.postId,
             userId: comment.userId,
             content: comment.content,

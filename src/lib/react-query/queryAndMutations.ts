@@ -323,7 +323,7 @@ export const useLikeComment = () => {
             addLikeToComment({ commentId, likedCommentArray }), // Now passing an object
 
         onSuccess: (data) => {
-            if ('\$id' in data) {
+            if ('$id' in data) {
                 queryClient.invalidateQueries({
                     queryKey: [QUERY_KEYS.ADD_LIKE_TO_COMMENT]
                 });
@@ -346,25 +346,25 @@ export const useUpdateComment = () => {
         onSuccess: (_, { commentId, newcontent, parentId, postId }) => {
             console.log("Updating cache for post:", postId, "Comment ID:", commentId);
 
-            const updateComments = (comments: any[]) =>
-                comments.map((comment: any) =>
-                    comment.$id === commentId ? { ...comment, content: newcontent } : comment
+            const updateComments = (comments: unknown[]) =>
+                comments.map((comment: unknown) =>
+                    typeof comment === 'object' && comment !== null && (comment as { $id: string; [key: string]: unknown }).$id === commentId ? { ...comment, content: newcontent } : comment
                 );
 
-            // 🔥 Ensure fresh cache update
-            queryClient.setQueryData([QUERY_KEYS.GET_COMMENTS, postId], (oldData: any) =>
+            //  Ensure fresh cache update
+            queryClient.setQueryData([QUERY_KEYS.GET_COMMENTS, postId], (oldData: unknown) =>
                 oldData && Array.isArray(oldData) ? [...updateComments(oldData)] : oldData
             );
 
             if (parentId) {
-                queryClient.setQueryData([QUERY_KEYS.GET_SUBCOMMENTS, parentId], (oldData: any) =>
+                queryClient.setQueryData([QUERY_KEYS.GET_SUBCOMMENTS, parentId], (oldData: unknown) =>
                     oldData && Array.isArray(oldData) ? [...updateComments(oldData)] : oldData
                 );
             }
 
-            console.log('Cache Updated ✅');
+            console.log('Cache Updated ');
 
-            // 🚀 Force refetch to update UI
+            //  Force refetch to update UI
             queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_COMMENTS, postId] });
             if (parentId) queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_SUBCOMMENTS, parentId] });
         },
