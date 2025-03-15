@@ -7,10 +7,9 @@ import CommentModal from "./CommentModel/CommentModal";
 type PostStatsProps = {
   post: Models.Document;
   userId: string;
-  toggleComment?: () => void; // ✅ Make it optional
 };
 
-const PostStats = ({ post, userId, toggleComment }: PostStatsProps) => {
+const PostStats = ({ post, userId }: PostStatsProps) => {
   const [isCommentOpen, setIsCommentOpen] = useState(false);
   const likedList: string[] = post.likes.map((user: Models.Document) => user.$id);
   const [likes, setLikes] = useState<string[]>(likedList);
@@ -31,7 +30,7 @@ const PostStats = ({ post, userId, toggleComment }: PostStatsProps) => {
     e.preventDefault();
     e.stopPropagation();
 
-    const savedPostRecord = currentUser?.save?.find((record: Models.Document) => record.post.$id === post.$id);
+    const savedPostRecord = currentUser?.saves?.find((record: Models.Document) => record.post.$id === post.$id);
 
     if (isSaved) {
       setIsSaved(false);
@@ -79,7 +78,7 @@ const PostStats = ({ post, userId, toggleComment }: PostStatsProps) => {
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            toggleComment ? toggleComment() : setIsCommentOpen(true);
+            setIsCommentOpen(true);
           }}
           className="cursor-pointer"
         />

@@ -37,7 +37,7 @@ const PostsOfUser: React.FC<PostsOfUserProps> = ({ userLookup ,setPostCount}) =>
   console.log("User Document ID from API:", documentId);
 
   return (
-    <div className="flex min-h-screen flex-col w-full">
+    <div className="flex min-h-screen flex-col w-full mt-6">
       <div className="home-container w-full">
         <div className="home-posts w-[80%] flex-col">
           {isPostLoading && (

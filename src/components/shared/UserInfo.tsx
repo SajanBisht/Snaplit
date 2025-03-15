@@ -8,7 +8,7 @@ const UserInfo = () => {
     const { user: user } = useUserContext();
 
     return (
-        <div className=" min-h-screen flex-col w-[20%] hidden md:block">
+        <div className=" flex-col w-[20%] hidden md:block">
             <header className="flex gap-2 items-center w-full content-center">
                     <img
                         src={user.imageUrl || '/assets/icons/profile-placeholder.svg'}

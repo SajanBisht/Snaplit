@@ -2,44 +2,21 @@ import { Models } from 'appwrite';
 import { Link } from 'react-router-dom';
 import { useUserContext } from '@/context/AuthContext';
 import PostStats from './PostStats';
+import { getRelativeTime } from '@/lib/react-query/queryAndMutations';
 
 type PostCardProps = {
     post: Models.Document;
-    toggleComment: () => void;
 };
 
 // Custom function to get relative time
-const getRelativeTime = (timestamp: string | number | Date) => {
-    const now = new Date();
-    const past = new Date(timestamp);
-    const diffInSeconds = Math.floor((now.getTime() - past.getTime()) / 1000);
 
-    const timeIntervals = [
-        { label: "year", seconds: 31536000 },
-        { label: "month", seconds: 2592000 },
-        { label: "week", seconds: 604800 },
-        { label: "day", seconds: 86400 },
-        { label: "hour", seconds: 3600 },
-        { label: "minute", seconds: 60 },
-        { label: "second", seconds: 1 },
-    ];
 
-    for (const interval of timeIntervals) {
-        const count = Math.floor(diffInSeconds / interval.seconds);
-        if (count >= 1) {
-            return `${count} ${interval.label}${count !== 1 ? "s" : ""} ago`;
-        }
-    }
-
-    return "just now";
-};
-
-const PostCard = ({ post,toggleComment }: PostCardProps) => {
+const PostCard = ({ post }: PostCardProps) => {
     const { user } = useUserContext();
     if (!post.creator) return null;
 
     return (
-        <div className="post-card p-4 border rounded-lg shadow-md w-full m-2">
+        <div className="post-card md:ml-6 rounded-lg shadow-md  h-full mt-4 p-2">
             <div className="flex justify-between items-center w-full">
                 <div className="flex items-center gap-3 w-full">
                     {/* Profile Link */}
@@ -64,27 +41,32 @@ const PostCard = ({ post,toggleComment }: PostCardProps) => {
                             <p>{post?.location || "Unknown Location"}</p>
                         </div>
                     </div>
-                </div>
 
-                {/* Edit Post Link */}
-                <Link to={`/update-post/${post.$id}`} className={`${user.id !== post.creator.$id && 'hidden'}`}>
-                    <img src="/assets/icons/edit.svg" alt="edit" />
-                </Link>
-            </div>
-            <Link to={`/posts/${post.$id}`}>
-                <div className=''>
-                    <p>{post.caption}</p>
-                    <ul  className='flex gap-1 mt-2'>
-                        {post.tags.map((tag:string)=>(
-                            <li key={tag} className='text-gray-400'>
-                                #{tag}
-                            </li>
-                        ))}
-                    </ul>
                 </div>
-                <img src={post.imageUrl ||"/assets/icons/profile-placeholder.svg"} alt="post image" className='rounded-xl mb-2 w-[50%] h-[250px]'/>
+                    {/* Edit Post Link */}
+                    <Link to={`/update-post/${post.$id}`} className={`${user.id !== post.creator.$id && 'hidden'} ml-4`}>
+                        <img src="/assets/icons/edit.svg" alt="edit" />
+                    </Link>
+                <img src="/assets/images/3dot-horizontal.png" alt="3 dots " className='invert-75 w-6 h-6' />
+            </div>
+
+            <Link to={`/posts/${post.$id}`}>
+                <div className='w-full h-[80vh] mt-2  content-center border-1 flex justify-center items-center overflow-clip'>
+                    <img src={post.imageUrl || "/assets/icons/profile-placeholder.svg"} alt="post image" className=' mb-2  mt-2  rounded-md ' />
+                </div>
             </Link>
-            <PostStats post={post} userId={user.id} toggleComment={toggleComment}/>
+            <div className='mt-4'>
+                <PostStats post={post} userId={user.id} />
+                <p>{post.caption}</p>
+                <ul className='flex gap-1'>
+                    {post.tags.map((tag: string) => (
+                        <li key={tag} className='text-gray-400'>
+                            #{tag}
+                        </li>
+                    ))}
+                </ul>
+            </div>
+            <hr className="bg-white opacity-30 mt-4" />
         </div>
     )
 };

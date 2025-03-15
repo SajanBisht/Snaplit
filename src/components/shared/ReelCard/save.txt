@@ -1,0 +1,225 @@
+import { useUserContext } from "@/context/AuthContext";
+import { getRelativeTime } from "@/lib/react-query/queryAndMutations";
+import { IReel } from "@/types";
+import ReelStats from "@/components/shared/ReelStats";
+import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
+
+type ReelCardProps = {
+    reel: IReel;
+    toggleComment: () => void;
+    isMuted: boolean;
+    toggleMute: () => void;
+    currentPlayingId: string | null;
+    setCurrentPlayingId: (id: string) => void;
+};
+
+const ReelCard = ({ reel, toggleComment, isMuted, toggleMute, currentPlayingId, setCurrentPlayingId }: ReelCardProps) => {
+    console.log("reel in reelCard", reel)
+    const { user } = useUserContext();
+    const [showVideo, setShowVideo] = useState(false);
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setShowVideo(true);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, []);
+
+    const videoRef = useRef<HTMLVideoElement>(null);
+    //Intersection observer
+    const observerRef = useRef<IntersectionObserver | null>(null);
+    useEffect(() => {
+        const observerCallback = (entries: IntersectionObserverEntry[]) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting && currentPlayingId !== reel.$id) {
+                    setCurrentPlayingId(reel.$id);
+                }
+            });
+        };
+
+        observerRef.current = new IntersectionObserver(observerCallback, {
+            threshold: 0.6, //threshold 60%
+        });
+
+        if (videoRef.current) {
+            observerRef.current.observe(videoRef.current);
+        }
+
+        return () => {
+            if (observerRef.current && videoRef.current) {
+                observerRef.current.unobserve(videoRef.current);
+            }
+
+            // Pause video on unmount
+            if (videoRef.current) {
+                videoRef.current.pause();
+            }
+        };
+
+    }, [reel.$id, setCurrentPlayingId]);
+
+    useEffect(() => {
+        if (!videoRef.current) return;
+
+        if (currentPlayingId === reel.$id) {
+            console.log("Playing reel", reel.$id);
+            videoRef.current.play().catch(() => { });
+        } else {
+            console.log("Pausing reel", reel.$id);
+            videoRef.current.pause();
+        }
+    }, [currentPlayingId, reel.$id]);
+
+
+    if (!reel.userId) return null;
+    return (
+        <div className="reel-card rounded-lg shadow-md h-full mt-4 p-2 w-full">
+            {/* Top Section - User Info and Edit */}
+            <div className="flex justify-between items-center  mb-4">
+                <div className="flex items-center gap-3 ">
+                    <div className="flex flex-col">
+                        <div className="flex justify-between items-center gap-10">
+                            <p className="text-lg font-semibold">{reel.caption || "Untitled Reel"}</p>
+                            <p className="text-gray-400 text-sm">{new Date(reel.createdAt).toLocaleDateString()}</p>
+                        </div>
+                        <div className="text-sm text-gray-500 flex gap-2">
+                            <p>{getRelativeTime(reel.createdAt)}</p>
+                            <span>•</span>
+                            <p>{reel.location || "Unknown Location"}</p>
+                        </div>
+                    </div>
+
+                    {user.id === reel.userId && (
+                        <Link to={`/update-reel/${reel.$id}`} className="ml-4">
+                            <img src="/assets/icons/edit.svg" alt="edit" />
+                        </Link>
+                    )}
+                </div>
+
+                <img
+                    src="/assets/images/3dot-horizontal.png"
+                    alt="3 dots"
+                    className="invert-75 w-6 h-6"
+                />
+            </div>
+
+            {/* Video or Thumbnail */}
+            <div className="h-[80vh] w-full border-2 content-center">
+                <div className="relative w-full aspect-video mb-4 overflow-hidden rounded-md">
+                    {showVideo ? (
+                        <>
+                            <video
+                                ref={videoRef}
+                                src={reel.videoUrl}
+                                autoPlay
+                                muted={isMuted}
+                                loop
+                                className="absolute top-0 left-0 w-full h-full object-cover cursor-pointer"
+
+                            />
+
+                            <button
+                                onClick={toggleMute}
+                                className="absolute bottom-4 right-4 bg-black/50 p-2 rounded-full"
+                            >
+                                {isMuted ? (
+                                    <img src="/assets/icons/mute.svg" alt="Unmute" className="invert w-6 h-6" />
+                                ) : (
+                                    <img src="/assets/icons/unmute.svg" alt="Mute" className="invert w-6 h-6" />
+                                )}
+                            </button>
+                        </>
+                    ) : (
+                        <img
+                            src={reel.thumbnailUrl || "/assets/icons/profile-placeholder.svg"}
+                            alt="thumbnail"
+                            className="absolute top-0 left-0 w-full h-full object-cover"
+                        />
+                    )}
+                </div>
+            </div>
+
+
+
+            {/* Caption, Tags, Stats */}
+            <div className="mt-2">
+                <p className="text-gray-700">{reel.caption}</p>
+
+                {reel.tags && (
+                    <ul className="flex gap-2 mt-1 flex-wrap">
+                        {reel.tags.map((tag: string) => (
+                            <li key={tag} className="text-sm text-gray-500">
+                                #{tag}
+                            </li>
+                        ))}
+                    </ul>
+                )}
+
+                {/* Uncomment when ready to use */}
+                {/* <ReelStats reel={reel} userId={user.id} toggleComment={toggleComment} /> */}
+            </div>
+
+            <hr className="bg-white opacity-30 mt-4" />
+        </div>
+    );
+};
+
+export default ReelCard;
+
+
+
+
+
+
+
+
+
+import ReelCard from "@/components/shared/ReelCard/ReelCard";
+import { useGetReelsFromDB } from "@/lib/react-query/queryAndMutations";
+import { IReel } from "@/types";
+import { Loader } from "lucide-react";
+import { useState } from "react";
+
+const Reels = () => {
+
+  const { data: reels, isPending: isReelLoading } = useGetReelsFromDB();
+  console.log('Reels document', reels)
+  console.log('isReelLoading', isReelLoading)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  function setIsCommentOpen(_arg0: boolean): void {
+    throw new Error("Function not implemented.");
+  }
+  const [isMuted, setIsMuted] = useState(true);
+  const toggleMute = () => {
+    setIsMuted(prev => !prev);
+  };
+
+  //Intersection observer 
+  const [currentPlayingId, setCurrentPlayingId] = useState<string | null>(null);
+  return (
+    <div className="md:ml-[35%]">
+      <div className="w-full ml-[3%]">
+        {isReelLoading && !reels ? (
+          <div className="flex mt-[10%] ml-[50%] w-full">
+            <Loader />
+          </div>
+        ) : (
+          <ul className="flex flex-col gap-1 ">
+            {Array.isArray(reels) && (reels as unknown as IReel[]).map((reel: IReel) => (
+              <div className="w-full " key={reel.$id}>
+                <ReelCard reel={reel}
+                  isMuted={isMuted}
+                  toggleMute={toggleMute}
+                  toggleComment={() => setIsCommentOpen(true)}
+                  currentPlayingId={currentPlayingId}
+                  setCurrentPlayingId={setCurrentPlayingId}
+                />
+              </div>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  )
+}
+export default Reels

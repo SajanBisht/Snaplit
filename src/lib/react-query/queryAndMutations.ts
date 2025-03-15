@@ -1,4 +1,4 @@
-import { INewPost, INewUser, InfinitePostsResponse, IUpdatePost } from '@/types'
+import { INewPost, INewUser, InfinitePostsResponse, IReel, IUpdatePost } from '@/types'
 import {
     useQuery,
     useMutation,
@@ -11,7 +11,15 @@ import {
     getUsersByIds, handleCommentSubmit, likedPost, savePost, searchPosts,
     SignInAccount, SignOutAccount, updatePost, updateComment,
     deletePostWithComments,
-    getUserOwnPosts
+    getUserOwnPosts,
+    getUserSavedPosts,
+    saveReelsInDatabase,
+    getReelsFromDB,
+    getUserWithThisUsername,
+    followOthers,
+    userFollowing,
+    userFollowers,
+    unFollowOthers
 } from '../appwrite/api'
 
 import { QUERY_KEYS } from './queryKeys'
@@ -21,19 +29,28 @@ export const useCreateUserAccount = () => {
         mutationFn: (user: INewUser) => createUserAccount(user),
     })
 }
+
 export const useSignInAccount = () => {
     return useMutation({
-        mutationFn: (user: {
-            email: string;
-            password: string;
-        }) => SignInAccount(user),
-    })
+        mutationFn: (user: { email: string; password: string }) => SignInAccount(user),
+        onError: (error: Error) => {
+            // Global error handling for the mutation
+            console.error("Mutation Error:", error);
+            // You can also display a toast here if needed
+        },
+        onSuccess: (data) => {
+            // You can handle success here, for example:
+            console.log("Sign-in successful", data);
+        },
+    });
 }
+
 export const useSignOutAccount = () => {
     return useMutation({
         mutationFn: () => SignOutAccount(),
     })
 }
+
 export const useCreatePost = () => {
     const queryClient = useQueryClient();
     return useMutation({
@@ -154,26 +171,26 @@ export const useDeletePost = () => {
 
 export const useGetInfinitePosts = () => {
     return useInfiniteQuery<InfinitePostsResponse, Error, InfinitePostsResponse, [string], string>({
-      queryKey: [QUERY_KEYS.GET_INFINITE_POSTS],
-      queryFn: ({ pageParam }) => getInfinitePosts({ pageParam }), // Now typed as string
-      getNextPageParam: (lastPage) => {
-        if (
-          typeof lastPage === 'object' &&
-          lastPage !== null &&
-          'documents' in lastPage &&
-          Array.isArray(lastPage.documents) &&
-          lastPage.documents.length > 0
-        ) {
-          const lastId = lastPage.documents[lastPage.documents.length - 1].$id;
-          return lastId;
-        }
-  
-        return null;
-      },
-      initialPageParam: '0',
+        queryKey: [QUERY_KEYS.GET_INFINITE_POSTS],
+        queryFn: ({ pageParam }) => getInfinitePosts({ pageParam }), // Now typed as string
+        getNextPageParam: (lastPage) => {
+            if (
+                typeof lastPage === 'object' &&
+                lastPage !== null &&
+                'documents' in lastPage &&
+                Array.isArray(lastPage.documents) &&
+                lastPage.documents.length > 0
+            ) {
+                const lastId = lastPage.documents[lastPage.documents.length - 1].$id;
+                return lastId;
+            }
+
+            return null;
+        },
+        initialPageParam: '0',
     });
-  };
-  
+};
+
 
 
 export const useSearchPosts = (searchTerm: string) => {
@@ -385,3 +402,136 @@ export const useGetUserPosts = (userId: string) => {
 };
 
 
+export const useUserSavedPosts = (userId: string) => {
+    return useQuery({
+        queryKey: [QUERY_KEYS.GET_USER_SAVED_POSTS, userId], // Include userId in query key
+        queryFn: () => getUserSavedPosts(userId), // Pass userId correctly as a function
+        enabled: !!userId, // Prevents execution if userId is not available
+    });
+}
+
+//Save Reels
+export const useSaveReelsInDatabase = () => {
+
+    return useMutation({
+        mutationFn: (file: IReel) => saveReelsInDatabase(file),
+        onSuccess: () => {
+            // Optional: Invalidate to refresh reel-related queries after saving
+            // queryClient.invalidateQueries({
+            //   queryKey: [QUERY_KEYS.GET_RECENT_REELS],
+            // });
+        },
+        onError: (error) => {
+            console.error("Failed to save reel:", error);
+        },
+    });
+};
+
+//Not a function of query&Mutation just calculate time
+export const getRelativeTime = (timestamp: string | number | Date) => {
+    const now = new Date();
+    const past = new Date(timestamp);
+    const diffInSeconds = Math.floor((now.getTime() - past.getTime()) / 1000);
+
+    const timeIntervals = [
+        { label: "year", seconds: 31536000 },
+        { label: "month", seconds: 2592000 },
+        { label: "week", seconds: 604800 },
+        { label: "day", seconds: 86400 },
+        { label: "hour", seconds: 3600 },
+        { label: "minute", seconds: 60 },
+        { label: "second", seconds: 1 },
+    ];
+
+    for (const interval of timeIntervals) {
+        const count = Math.floor(diffInSeconds / interval.seconds);
+        if (count >= 1) {
+            return `${count} ${interval.label}${count !== 1 ? "s" : ""} ago`;
+        }
+    }
+
+    return "just now";
+};
+
+//Get Reels
+export const useGetPaginatedReels = () => {
+    return useInfiniteQuery({
+        queryKey: [QUERY_KEYS.GET_REELS_FROM_DB],
+        queryFn: ({ pageParam }: { pageParam?: string }) => getReelsFromDB({ pageParam }),
+        initialPageParam: undefined, // 🔥 Required for strict TS types
+        getNextPageParam: (lastPage) => lastPage.nextPage,
+    });
+};
+
+//search user by username
+
+export const useGetUserWithThisUsername = (username: string) => {
+    return useQuery({
+        queryKey: [QUERY_KEYS.GET_USER_BY_USERNAME, username],
+        queryFn: () => getUserWithThisUsername(username),
+        enabled: !!username, // Ensures the query runs only if a username is provided
+    });
+};
+
+
+//follow others
+export const useFollowOthers = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({
+            followerId,
+            followingId,
+        }: {
+            followerId: string;
+            followingId: string;
+        }) => followOthers({ followerId, followingId }),
+        onSuccess: () => {
+            // Refetch relevant queries after follow
+            queryClient.invalidateQueries({ queryKey: ["getUserFollowers"] });
+            queryClient.invalidateQueries({ queryKey: ["getUserFollowing"] });
+        },
+    });
+};
+
+//user Follower who follows our user 
+export const useUserFollowers = (userId: string) => {
+    return useQuery({
+        queryKey: [QUERY_KEYS.GET_USER_FOLLOWERS, userId],
+        queryFn: () => userFollowers(userId),
+        enabled: !!userId, // only run if userId is truthy
+    });
+};
+
+//user Following who our user follows 
+export const useUserFollowing = (userId: string) => {
+    return useQuery({
+        queryKey: [QUERY_KEYS.GET_USER_FOLLOWING, userId],
+        queryFn: () => userFollowing(userId),
+        enabled: !!userId,
+    });
+};
+
+export const useUnFollowOthers = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({
+            followerId,
+            followingId,
+        }: {
+            followerId: string;
+            followingId: string;
+        }) => unFollowOthers({ followerId, followingId }),
+
+        onSuccess: () => {
+            // Refetch relevant queries after unfollow
+            queryClient.invalidateQueries({ queryKey: ["getUserFollowers"] });
+            queryClient.invalidateQueries({ queryKey: ["getUserFollowing"] });
+        },
+
+        onError: (error) => {
+            console.error("Unfollow failed:", error);
+        },
+    });
+};

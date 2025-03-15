@@ -20,7 +20,7 @@ const Topbar = () => {
       <div className="flex justify-between items-center py-4 px-5">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-3">
-          <img src="/assets/images/logo.svg" alt="logo" width={130} height={325} />
+          <img src="/assets/images/logo.png" alt="logo" width={130} height={325} className='w-12 rounded-xl'/>
         </Link>
         <div className="flex items-center gap-4">
           {/* Logout Button */}

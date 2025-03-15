@@ -9,6 +9,10 @@ const users = [
   { id: 4, name: "David", img: "/assets/user4.jpg", hasStory: true },
   { id: 5, name: "Eve", img: "/assets/user5.jpg", hasStory: false },
   { id: 6, name: "Frank", img: "/assets/user6.jpg", hasStory: true },
+  { id: 7, name: "Frank", img: "/assets/user6.jpg", hasStory: true },
+  { id: 8, name: "Frank", img: "/assets/user6.jpg", hasStory: true },
+  { id: 9, name: "Frank", img: "/assets/user6.jpg", hasStory: true },
+  { id: 10, name: "Frank", img: "/assets/user6.jpg", hasStory: true },
 ];
 
 const StoriesCarousel = () => {
@@ -30,7 +34,7 @@ const StoriesCarousel = () => {
   };
 
   return (
-    <div className="relative w-full max-w-full px-4 overflow-hidden">
+    <div className="relative w-[90%] max-w-full px-4 overflow-hidden">
       {/* Swipeable area */}
       <div {...swipeHandlers}>
         <div

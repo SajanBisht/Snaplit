@@ -43,61 +43,63 @@ const PostDetails = () => {
 
   return (
     <div className="flex justify-center p-6 w-full h-fit ml-[20%] ">
-      <div className="border text-white rounded-2xl p-6 w-full md:w-[80%] lg:w-[70%] xl:w-[60%] 2xl:w-[50%] shadow-lg flex-col md:flex">
+      <div className="border text-white rounded-2xl p-6 w-[80%] shadow-lg flex md:flex">
         {/* Post Image */}
-        <div className="">
+        <div className=" flex w-[50%] gap-2">
           <img
             src={post?.imageUrl || "/assets/icons/profile-placeholder.svg"}
             alt="post"
-            className="rounded-2xl h-[200px] w-full md:h-[250px]   object-cover"
+            className="rounded-md h-full w-full  object-cover"
           />
         </div>
-
-        {/* User Info & Actions */}
-        <div className="flex items-center justify-between  mt-4">
-          {/* Profile Info */}
-          <div className="flex items-center gap-3">
-            <Link to={`/profile/${post?.creator?.$id}`}>
-              <img
-                src={post?.creator?.imageUrl || "/assets/icons/holder.svg"}
-                alt="creator"
-                className="rounded-full w-12 h-12 object-cover"
-              />
-            </Link>
-            <div>
-              <p className="text-lg font-semibold">{post?.creator?.name || "Unknown User"}</p>
-              <p className="text-gray-400 text-sm">{getRelativeTime(post.$createdAt)}</p>
-            </div>
-          </div>
-
-          {/* Edit & Delete Buttons */}
-          {user.user.id === post.creator.$id && (
-            <div className="flex gap-3 items-center">
-              <Link to={`/update-post/${post.$id}`}>
-                <img src="/assets/icons/edit.svg" alt="edit" className="w-6" />
+        <div className="h-full bg-white opacity-30 w-px mx-2"></div>
+        <div className="w-[50%] p-2 ">
+          {/* User Info & Actions */}
+          <div className="flex items-center justify-between  mt-4">
+            {/* Profile Info */}
+            <div className="flex items-center gap-3">
+              <Link to={`/profile/${post?.creator?.$id}`}>
+                <img
+                  src={post?.creator?.imageUrl || "/assets/icons/holder.svg"}
+                  alt="creator"
+                  className="rounded-full w-12 h-12 object-cover"
+                />
               </Link>
-              <Button onClick={handleDeletePost} className="p-1">
-                <img src="/assets/icons/delete.svg" alt="delete" className="w-6" />
-              </Button>
+              <div>
+                <p className="text-lg font-semibold">{post?.creator?.name || "Unknown User"}</p>
+                <p className="text-gray-400 text-sm">{getRelativeTime(post.$createdAt)}</p>
+              </div>
             </div>
-          )}
-        </div>
 
-        {/* Divider */}
-        <hr className="border-gray-700 my-4" />
-
-        {/* Post Content */}
-        <div className="my-2">
-          <p className="text-xl">{post.caption}</p>
-          <div className="flex gap-2 mt-2 text-sm text-gray-400">
-            {post.tags.map((tag: string) => (
-              <span key={tag}>#{tag}</span>
-            ))}
+            {/* Edit & Delete Buttons */}
+            {user.user.id === post.creator.$id && (
+              <div className="flex gap-3 items-center">
+                <Link to={`/update-post/${post.$id}`}>
+                  <img src="/assets/icons/edit.svg" alt="edit" className="w-6" />
+                </Link>
+                <Button onClick={handleDeletePost} className="p-1">
+                  <img src="/assets/icons/delete.svg" alt="delete" className="w-6" />
+                </Button>
+              </div>
+            )}
           </div>
-        </div>
 
-        {/* Post Stats */}
-        <PostStats post={post} userId={user.user.id}/>
+          {/* Divider */}
+          <hr className="border-gray-700 my-4" />
+
+          {/* Post Content */}
+          <div className="my-2">
+            <p className="text-xl">{post.caption}</p>
+            <div className="flex gap-2 mt-2 text-sm text-gray-400">
+              {post.tags.map((tag: string) => (
+                <span key={tag}>#{tag}</span>
+              ))}
+            </div>
+          </div>
+
+          {/* Post Stats */}
+          <PostStats post={post} userId={user.user.id} />
+        </div>
       </div>
     </div>
   );

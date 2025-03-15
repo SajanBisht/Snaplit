@@ -1,21 +1,6 @@
-import { Outlet, Navigate } from "react-router-dom";
-import { useUserContext } from "@/context/AuthContext";
-import Loader from "@/components/shared/Loader";
+import { Outlet } from "react-router-dom";
 
 const AuthLayout = () => {
-  const { isAuthenticated, isLoading } = useUserContext();
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <Loader /> {/* or a spinner/loading screen */}
-      </div>
-    );
-  }
-
-  if (isAuthenticated) {
-    return <Navigate to="/" replace />;
-  }
 
   return (
     <div className="flex w-full min-h-screen">

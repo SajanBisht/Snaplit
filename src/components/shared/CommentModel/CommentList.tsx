@@ -144,7 +144,7 @@ const CommentList: React.FC<CommentListProps> = ({ postId }) => {
 
     //editing comment section
     const [isEditing] = useState(false);
-   
+
 
     //context use
     const context = useContext(CommentContext);
@@ -162,7 +162,7 @@ const CommentList: React.FC<CommentListProps> = ({ postId }) => {
             {/* Comments List */}
             <div className="w-full flex">
                 <div className="w-[50%] sticky h-[300px] top-0 hidden md:block">
-                    {post && !('error' in post) && <PostCard key={postId} post={post} toggleComment={() => {}} />}
+                    {post && !('error' in post) && <PostCard key={postId} post={post} />}
                 </div>
                 <div className="md:w-[50%] w-full ml-4">
                     {isLoading && <Loader />}
@@ -247,9 +247,9 @@ const CommentList: React.FC<CommentListProps> = ({ postId }) => {
                                     {/* Show Reply Button */}
                                     <div onClick={() => {
                                         toggleShowReplyInput(comment.$id)
-                                        setValue((prev) => ({ ...prev, homepost: false, replycomment: true, replysubcomment: false,editcomment:false }));
+                                        setValue((prev) => ({ ...prev, homepost: false, replycomment: true, replysubcomment: false, editcomment: false }));
                                     }} className="cursor-pointer">
-                                        <span className="text-gray-400">{ !showReplyInput[comment.$id] ? "Reply" : "Close"}</span>
+                                        <span className="text-gray-400">{!showReplyInput[comment.$id] ? "Reply" : "Close"}</span>
                                     </div>
 
                                     <div onClick={() => toggleShowMore(comment.$id)} className="cursor-pointer">
@@ -286,7 +286,7 @@ const CommentList: React.FC<CommentListProps> = ({ postId }) => {
                 </div>
             </div>
             {/* Comment Input */}
-             <div className="fixed w-full bottom-0 z-[1100]">
+            <div className="fixed w-full bottom-0 z-[1100]">
                 <CommentInput
                     action="post"
                     postId={postId}

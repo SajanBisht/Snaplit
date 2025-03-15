@@ -2,15 +2,14 @@ import  { useEffect, useRef, useState } from 'react';//comment
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '../ui/button';
 import { useSignOutAccount } from '@/lib/react-query/queryAndMutations';
-import { useUserContext } from '@/context/AuthContext';
 import { useSidebarLinks } from '@/constants';
 import { INavLink } from '@/types';
+import Loader from './Loader';
 
 const LeftSidebar = () => {
   const { pathname } = useLocation();
-  const { mutate: signOut, isSuccess } = useSignOutAccount();
+  const { mutate: signOut, isSuccess ,isPending:isLoading } = useSignOutAccount();
   const navigate = useNavigate();
-  const { user } = useUserContext();
 
   useEffect(() => {
     if (isSuccess) {
@@ -41,29 +40,21 @@ useEffect(() => {
   const sidebarLinks = useSidebarLinks(); // Call the function inside a component
 
   return (
-    <nav className='leftsidebar min-h-screen bg-gray-950 hidden md:block w-[20%] fixed z-[1100]'>
-      <section className="shadow-md">
-        <div className="py-4 px-5 gap-4">
+    <nav className='leftsidebar min-h-screen  hidden md:block w-[16%] fixed z-[1100]'>
+      <section className="shadow-md flex">
+        <div className=" px-5 gap-4">
           <div className="mb-4">
-            <Link to="/" className="flex items-center">
-              <img src="/assets/images/logoSnaplit.png" alt="logo" className='w-72 h-16 rounded-2xl ' />
+            <Link to="/" className="flex items-center mt-7">
+              <img src="/assets/images/logoSnaplit2.png" alt="logo" className='w-full h-[55px] ' />
             </Link>
           </div>
-
-          <Link to={`/profile/${user.id}`} className='flex items-center gap-3'>
-            <img src={user.imageUrl || '/assets/icons/profile-placeholder.svg'} alt="profile" className='h-12 w-12 rounded-full' />
-            <div>
-              <p className='body-bold text-xl'>{user.name}</p>
-              <p className='text-gray-400 text-[14px]'>@{user.username}</p>
-            </div>
-          </Link>
 
           <ul className='flex flex-col gap-3 mt-4 text-xl'>
             {sidebarLinks.map((link: INavLink) => {
               const isActive = pathname === link.route;
               return (
-                <li key={link.route} className={`left-sidebar-link group ${isActive ? 'bg-purple-800 rounded-xl' : ''}`}>
-                  <NavLink to={link.route} className='flex gap-4 items-center hover:bg-purple-800 py-2 px-4 hover:rounded-xl'>
+                <li key={link.route} className={`left-sidebar-link group ${isActive ? 'bg-[#171717] rounded-md' : ''}`}>
+                  <NavLink to={link.route} className='flex gap-4 items-center hover:bg-[#171717] py-2 px-4 hover:rounded-md'>
                     <img
                       src={link.imgURL}
                       alt={link.label}
@@ -90,19 +81,21 @@ useEffect(() => {
                       <span>Liked</span>
                     </Button>
                   </div>
-                  <div className='hover:bg-gray-500 w-full flex left-0 rounded-xl cursor-pointer'>
+                  <div className='hover:bg-gray-500 w-full  rounded-xl cursor-pointer'>
                     <Button
                       className="text-[18px] text-gray-400 gap-2 cursor-pointer"
-                      onClick={() => signOut()}
+                      onClick={()=> signOut()}
                     >
-                      <img src="/assets/icons/logout.svg" alt="logout" />
-                      <p className='text-gray-400 text-[16px]'>Logout</p>
+                      {isLoading ? <div className='ml-24'><Loader /></div> : <div className='flex items-center justify-center gap-2'>
+                        <img src="/assets/icons/logout.svg" alt="logout" />
+                        <p className='text-gray-400 text-[16px]'>Logout</p>
+                      </div>}
                     </Button>
                   </div>
                 </div>
               </div>
             )}
-            <div className={`hover:bg-purple-800 hover:rounded-xl w-full disable ${hiddenModel ? 'bg-purple-800 rounded-xl' : ''}`} >
+            <div className={`hover:bg-[#171717] hover:rounded-md w-full disable ${hiddenModel ? 'bg-[#171717] rounded-md' : ''}`} >
               <Button
                 onClick={() => setHiddenModel(prev => !prev)}
                 className='w-full flex hover:filter hover:invert hover:brightness-0'
@@ -116,6 +109,7 @@ useEffect(() => {
             </div>
           </ul>
         </div>
+        <div className="w-px min-h-screen bg-white opacity-30"></div>
       </section>
     </nav>
   );

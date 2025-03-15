@@ -39,7 +39,7 @@ const Explore = () => {
   }
 
   return (
-    <div className="Explore-container container mx-auto flex flex-col w-[90%] xl:w-[70%] ml-[35%]">
+    <div className="Explore-container container mx-auto flex flex-col w-[90%] xl:w-[70%] md:ml-[35%]">
       {/* Search Section */}
       <div className="explore-inner-container w-[90%] xl:w-[70%] mt-8">
         <h2 className="text-2xl xl:text-3xl mb-1">Search Post</h2>

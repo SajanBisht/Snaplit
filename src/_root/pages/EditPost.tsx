@@ -23,8 +23,8 @@ const EditPost = () => {
   }
 
   return (
-    <div className="w-full flex min-h-screen ml-[35%]">
-      <div className="w-[90%] bg-black"> {/*  Fixed class name */}
+    <div className="w-full flex min-h-screen md:ml-[35%]">
+      <div className="w-full bg-black"> {/*  Fixed class name */}
         <div className=" flex items-center gap-3 justify-start w-full m-2">
           <img src="/assets/icons/edit.svg" alt="edit" width={36} height={36} /> {/*  Use an edit icon */}
           <h2 className="h3-bold md:h2-bold w-full text-left text-2xl">Edit Post</h2> {/*  Fixed heading */}

@@ -1,144 +1,184 @@
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { useNavigate } from "react-router-dom"
-import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "../ui/textarea"
-import FileUploader from "../shared/FileUploader"
-import { PostValidation } from "@/lib/validation"
-import { Models } from "appwrite"
-import { useUserContext } from "@/context/AuthContext"
-import { useToast } from "@/hooks/use-toast"
-import { useCreatePost, useUpdatePost } from "@/lib/react-query/queryAndMutations"
-import Loader from "../shared/Loader"
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { useNavigate } from "react-router-dom";
+
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "../ui/textarea";
+import FileUploader from "../shared/FileUploader";
+import { PostValidation } from "@/lib/validation";
+import { Models } from "appwrite";
+import { useUserContext } from "@/context/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import { useCreatePost, useUpdatePost } from "@/lib/react-query/queryAndMutations";
+import Loader from "../shared/Loader";
 
 type PostFormProps = {
   post?: Models.Document;
-  action: 'Create' | 'Update';
-}
+  action: "Create" | "Update";
+};
 
 export function PostForm({ post, action }: PostFormProps) {
-  const { mutateAsync: createPost, isPending: isLoadingCreate } = useCreatePost();
-  const { mutateAsync: updatePost, isPending: isLoadingUpdate } = useUpdatePost();
+  const { mutateAsync: createPost, isPending: isCreating } = useCreatePost();
+  const { mutateAsync: updatePost, isPending: isUpdating } = useUpdatePost();
   const { user } = useUserContext();
   const { toast } = useToast();
   const navigate = useNavigate();
-  // 1. Define your form.
+
   const form = useForm<z.infer<typeof PostValidation>>({
     resolver: zodResolver(PostValidation),
     defaultValues: {
-      caption: post ? post?.caption : "",
+      caption: post?.caption || "",
       file: [],
-      location: post ? post?.loaction : "",
-      tags: post ? post.tags.join(',') : ''
-    },
-  })
-
-  // 2. Define a submit handler.
-  async function onSubmit(values: z.infer<typeof PostValidation>) {
-    console.log(values)
-
-    try {
-      if (post && action === 'Update') {
-        try {
-          await updatePost({
-            ...values,
-            postId: post.$id,
-            imageId: post.imageId,
-            imageUrl: post.imageUrl,
-
-          })
-          navigate('/')
-        } catch (error) {
-          toast({
-            title: 'Please try again'
-          })
-        }
-        return
-      }
-      await createPost({
-        ...values,
-        userId: user.id,
-      });
-      navigate('/');
-    } catch (error) {
-      toast({
-        title: 'Please try again',
-      });
+      location: post?.loaction || "",
+      tags: post?.tags?.join(",") || ""
     }
-  }
+  });
+
+  const onSubmit = async (values: z.infer<typeof PostValidation>) => {
+    try {
+      if (post && action === "Update") {
+        await updatePost({
+          ...values,
+          postId: post.$id,
+          imageId: post.imageId,
+          imageUrl: post.imageUrl
+        });
+        toast({ title: "Post updated successfully!" });
+      } else {
+        await createPost({ ...values, userId: user.id });
+        toast({ title: "Post created successfully!" });
+      }
+      navigate("/");
+    } catch (error) {
+      toast({ title: "Something went wrong, please try again." });
+    }
+  };
 
   const handleCancel = () => {
-    navigate('/')
-    form.reset()
-  }
+    form.reset();
+    navigate("/");
+  };
+
+  const inputWidth = "w-[95%] md:w-[90%] lg:w-[80%] xl:w-[75%] mx-2";
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-9 w-full min-h-screen ">
+      <form onSubmit={form.handleSubmit(onSubmit)} className={`flex flex-col gap-9  min-h-screen mb-6 ${inputWidth}`}>
+        {/* Caption */}
         <FormField
           control={form.control}
           name="caption"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="shad-form_label text-xl ml-4 ">Caption</FormLabel>
+              <FormLabel className="text-xl ml-4">Caption</FormLabel>
               <FormControl>
-                <Textarea placeholder="Write here . . ." {...field} className="xl:w-[70%] lg:w-[80%] md:w-[90%] w-[95%] mx-2 h-[20vh] mt-2" {...field} />
+                <Textarea
+                  placeholder="Write here..."
+                  className={` h-[20vh] mt-2 rounded-xl  text-white focus:ring-2 focus:ring-purple-600 transition-all`}
+                  {...field}
+                />
               </FormControl>
-              <FormMessage className="shad-form_message" />
+              <FormMessage />
             </FormItem>
           )}
         />
+
+        {/* File */}
         <FormField
           control={form.control}
           name="file"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="shad-form_label text-xl ml-4  ">Add Photos</FormLabel>
-              <FormControl>
-                <FileUploader
-                  fieldChange={field.onChange}
-                  mediaUrl={post?.imageUrl}
-                />
+              <FormLabel className="text-xl ml-4">Add Photos</FormLabel>
+              <FormControl >
+                <FileUploader fieldChange={field.onChange} mediaUrl={post?.imageUrl} action='post' />
               </FormControl>
-              <FormMessage className="shad-form_message" />
+              <FormMessage />
             </FormItem>
           )}
         />
+
+        {/* Location */}
         <FormField
           control={form.control}
           name="location"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="shad-form_label text-xl ml-4">Add Location</FormLabel>
+              <FormLabel className="text-xl ml-4">Location</FormLabel>
               <FormControl>
-                <Input type='text' className="xl:w-[70%] lg:w-[80%] md:w-[90%] w-[95%] mx-2  mt-2" {...field} />
+                <Input
+                  placeholder="e.g. Jaipur, India"
+                  className={` mt-2 rounded-xl  text-white focus:ring-2 focus:ring-purple-600 transition-all`}
+                  {...field}
+                />
               </FormControl>
-              <FormMessage className="shad-form_message" />
+              <FormMessage />
             </FormItem>
           )}
         />
+
+        {/* Tags */}
         <FormField
           control={form.control}
           name="tags"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="shad-form_label text-xl ml-4">Add Tags <span className="text-[16px] text-gray-400 ml-2 ">(Seperated by comma " ,")</span></FormLabel>
+              <FormLabel className="text-xl ml-4">
+                Tags <span className="text-sm text-gray-400">(comma-separated)</span>
+              </FormLabel>
               <FormControl>
-                <Input type='text' className="xl:w-[70%] lg:w-[80%] md:w-[90%] w-[95%] mx-2 mt-2 " placeholder="Art, Expression, Learn" {...field} />
+                <Input
+                  placeholder="Art, Expression, Learn"
+                  className={` mt-2 rounded-xl  text-white focus:ring-2 focus:ring-purple-600 transition-all`}
+                  {...field}
+                />
               </FormControl>
-              <FormMessage className="shad-form_message" />
+              <FormMessage />
             </FormItem>
           )}
         />
-        <div className="flex gap-4 item-center justify-end mr-[5%] md:mr-[9%] lg:mr-[19%] xl:mr-[29.6%] mb-6">
-          <Button type="button" className="bg-purple-900 md:w-[10vw] lg:w-[7vw] w-[88px] cursor-pointer" onClick={handleCancel}>Cancel</Button>
-          {isLoadingCreate ||isLoadingUpdate ? <div className="md:w-[10vw] lg:w-[7vw] w-[88px] cursor-pointer flex justify-center items-center"><Loader /></div> : <Button type="submit" className="bg-purple-900  md:w-[10vw] lg:w-[7vw] w-[88px] cursor-pointer p-2">{action} Post</Button>}
+
+        {/* Action Buttons */}
+        <div className="flex justify-end gap-4">
+          <div>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCancel}
+              className="rounded-full px-6 py-2 text-white border-purple-600 hover:bg-purple-900 transition-all"
+            >
+              Cancel
+            </Button>
+          </div>
+
+          <div>
+            {isCreating || isUpdating ? (
+              <div className="w-[88px] flex justify-center items-center">
+                <Loader />
+              </div>
+            ) : (
+              <Button
+                type="submit"
+                className="rounded-full bg-purple-700 hover:bg-purple-800 px-6 py-2 text-white transition-all"
+              >
+                {action} Post
+              </Button>
+            )}
+          </div>
         </div>
       </form>
     </Form>
-  )
+  );
 }
 
-export default PostForm
+export default PostForm;

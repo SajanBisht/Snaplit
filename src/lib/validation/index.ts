@@ -35,3 +35,25 @@ export const PostValidation = z.object({
         
     tags: z.string().optional(),
 });
+
+export const ReelValidation = z.object({
+    caption: z
+      .string()
+      .min(5, { message: "Caption must be at least 5 characters." })
+      .max(2200, { message: "Caption must be at most 2200 characters." }),
+  
+    file: z
+      .array(z.instanceof(File), { message: "Invalid file format." })
+      .min(1, { message: "Please upload a video." }),
+  
+    location: z
+      .string()
+      .min(2, { message: "Location must be at least 2 characters." })
+      .max(100, { message: "Location must be at most 100 characters." }),
+  
+    tags: z.string().optional(),
+    audio: z.string().optional(),
+  
+    duration: z.coerce.number().min(15).max(60).optional(),
+  });
+  

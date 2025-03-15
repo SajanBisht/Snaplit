@@ -28,8 +28,7 @@ export default function SigninForm() {
             email: "", 
             password: "" 
         },
-    });
-    
+    });   
 
     const onSubmit = async (values: z.infer<typeof SigninValidation>) => {
         try {
@@ -49,6 +48,7 @@ export default function SigninForm() {
 
             if (isLoggedIn) {
                 form.reset();
+                toast({ title: "Successfully Signed-in !!" });
                 navigate("/");
             } else {
                 return toast({ title: "Sign in failed. Please try again." });
@@ -61,7 +61,6 @@ export default function SigninForm() {
             }
         }
     };
-
 
     return (
         <Form {...form}>
