@@ -39,14 +39,14 @@ export function PostForm({ post, action }: PostFormProps) {
     defaultValues: {
       caption: post?.caption || "",
       file: [],
-      location: post?.loaction || "",
+      location: post?.location || "",
       tags: post?.tags?.join(",") || ""
     }
   });
 
   const onSubmit = async (values: z.infer<typeof PostValidation>) => {
     try {
-      if (post && action === "Update") {
+      if (post && '$id' in post && action === "Update") {
         await updatePost({
           ...values,
           postId: post.$id,

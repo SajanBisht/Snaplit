@@ -24,18 +24,18 @@ const Profile = () => {
   const { data: response } = useUserFollowing(id ? id : '')
   // console.log("user following list profile", response);
   const { data: allFollowing } = useGetUsers(response)
-  // console.log("All Following Data profile", allFollowing)
+  console.log("All Following Data profile", allFollowing)
 
 
 
   //Followers Section
   const [actionForModel, setActionForModel] = useState('followers')//model action command
-  console.log("id .......", id)
-  console.log("currentuserId in profile", currentuser.id)
+  // console.log("id .......", id)
+  // console.log("currentuserId in profile", currentuser.id)
   const { data: response2 } = useUserFollowers(id ? id : '')
-  console.log("//////w/w/w/w user followers list profile", response2);
+  // console.log("//////w/w/w/w user followers list profile", response2);
   const followerIds = response2 ? response2.map(item => item.followerId) : [];
-  console.log("followerId array", followerIds);    //['67bf62f3003d0e3e230d']
+  // console.log("followerId array", followerIds);    //['67bf62f3003d0e3e230d']
   const { data: allFollowers } = useGetUsers(followerIds)
   console.log("All Followers Data profile", allFollowers)
   const [toggleFollow, setToggleFollow] = useState(false);
@@ -64,7 +64,7 @@ const Profile = () => {
   if (isError || !users || users.length === 0) return <p>User not found</p>;
   const user = users[0]; // Extract the first user //comment
 
-  console.log("user data in profile", user)
+  // console.log("user data in profile", user)
 
 
   return (
@@ -139,17 +139,8 @@ const Profile = () => {
               {/* followers section */}
               {followerSection && (
                 <div className={`absolute md:top-44  ${actionForModel === 'followings' ? 'md:right-[20%]' : 'md:right-[35%]'} z-[1200]  shadow-lg rounded-md  md:w-[30%] md:mx-auto  h-[30%] w-[92%] left-0 md:left-[62%] mx-[4%]`}>
-                  {allFollowing && allFollowers && <FollowersDropdown
-                    allFollowing={allFollowing.map(doc => ({
-                      $id: doc.$id,
-                      id: doc.id,
-                      name: doc.name,
-                      username: doc.username,
-                      email: doc.email,
-                      imageUrl: doc.imageUrl,
-                      bio: doc.bio || '', // add other fields from IUser here if needed
-                    }))}
-                    allFollowers={allFollowers.map(doc => ({
+                  <FollowersDropdown
+                    allFollowing={(allFollowing ?? []).map(doc => ({
                       $id: doc.$id,
                       id: doc.id,
                       name: doc.name,
@@ -158,10 +149,18 @@ const Profile = () => {
                       imageUrl: doc.imageUrl,
                       bio: doc.bio || '',
                     }))}
-                    setFollowerSection={setFollowerSection}
-                    actionForModel={actionForModel}
+                    allFollowers={(allFollowers ?? []).map(doc => ({
+                      $id: doc.$id,
+                      id: doc.id,
+                      name: doc.name,
+                      username: doc.username,
+                      email: doc.email,
+                      imageUrl: doc.imageUrl,
+                      bio: doc.bio || '',
+                    }))}
+                  setFollowerSection={setFollowerSection}
+                  actionForModel={actionForModel}
                   />
-                  }
                 </div>
               )}
             </div>
