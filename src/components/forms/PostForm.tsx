@@ -59,6 +59,7 @@ export function PostForm({ post, action }: PostFormProps) {
         toast({ title: "Post created successfully!" });
       }
       navigate("/");
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       toast({ title: "Something went wrong, please try again." });
     }
