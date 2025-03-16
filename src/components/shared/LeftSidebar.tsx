@@ -74,7 +74,7 @@ useEffect(() => {
                   <div className='hover:bg-gray-500 w-full flex left-0 rounded-xl cursor-pointer my-2'>
                     <Button className='text-[18px] text-gray-400 gap-2 cursor-pointer'
                      onClick={()=>{
-                      navigate('/liked-posts');
+                      navigate('/liked');
                       setHiddenModel(prev=>!prev);
                     }}>
                       <img src="/assets/icons/like.svg" alt="likes" width={23} />

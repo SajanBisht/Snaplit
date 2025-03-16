@@ -1,7 +1,7 @@
 import "./App.css";
 
 import { Routes, Route } from "react-router-dom";
-import { AllUsers, CreatePost, EditPost, Explore, Home, LikedPosts,Notification, Messages, PostDetails, Profile, Reels, Saved, UpdateProfile, Setting} from "./_root/pages";
+import { AllUsers, CreatePost, EditPost, Explore, Home, Liked,Notification, Messages, PostDetails, Profile, Reels, Saved, UpdateProfile, Setting} from "./_root/pages";
 import SigninForm from "./_auth/forms/SigninForm";
 import SignupForm from "./_auth/forms/SignupForm";
 import AuthLayout from "./_auth/AuthLayout";
@@ -30,7 +30,7 @@ const App = () => {
             <Route path="/posts/:id" element={<PostDetails />} />
             <Route path="/profile/:id" element={<Profile />} />
             <Route path="/update-profile/:id" element={<UpdateProfile />} />
-            <Route path="/liked-posts" element={<LikedPosts />} />
+            <Route path="/liked" element={<Liked />} />
             <Route path="/reels" element={<Reels />} />
             <Route path="/messages" element={<Messages />} />
             <Route path="/notification" element={<Notification />} />
